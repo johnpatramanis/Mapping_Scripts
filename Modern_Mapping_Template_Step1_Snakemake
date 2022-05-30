@@ -1,0 +1,296 @@
+import os
+import os.path
+from os import listdir
+from os.path import isfile, join
+
+
+
+################################################################################################################ SET UP ################################################################################################################
+
+SAMPLES=[]
+DIR_LOC={}
+PAIRED_END={}
+FASTQ_FOLDERS=['../GREAT_APE_GENOMES_PROJECT_FASTQ/']
+
+for FASTQ_PATH in FASTQ_FOLDERS:
+
+    FASTQ_FILES = [f for f in listdir(FASTQ_PATH) if isfile(join(FASTQ_PATH, f))]
+    FASTQ_FILES = [f for f in FASTQ_FILES if '.fastq' in f]
+    for FILE in FASTQ_FILES:
+    
+        SAMPLE_HERE=FILE.split('.fastq')[0]
+        
+        if (SAMPLE_HERE[len(SAMPLE_HERE)-2:len(SAMPLE_HERE)]=='_1') or (SAMPLE_HERE[len(SAMPLE_HERE)-2:len(SAMPLE_HERE)]=='_2'):
+            SAMPLE_HERE=SAMPLE_HERE.split('_')[0]
+            DIR_LOC[SAMPLE_HERE]=FASTQ_PATH
+            PAIRED_END[SAMPLE_HERE]='YES'
+            SAMPLES.append(SAMPLE_HERE)
+            
+        else :
+            DIR_LOC[SAMPLE_HERE]=FASTQ_PATH
+            PAIRED_END[SAMPLE_HERE]='NO'
+            SAMPLES.append(SAMPLE_HERE)
+
+
+
+SAMPLES=list(set(SAMPLES))
+print(len(SAMPLES))
+SAMPLES=SAMPLES ############################### TESTING!
+
+######## GET LOCATION OF SAMPLE
+
+def LocationOfPairedSample1(Sample):
+    return "{}{}_1.fastq.gz".format(DIR_LOC[Sample],Sample)
+    
+def LocationOfPairedSample2(Sample):
+    return "{}{}_2.fastq.gz".format(DIR_LOC[Sample],Sample)
+
+
+def LocationOfNonPairedSample(Sample):
+    return "{}{}.fastq.gz".format(DIR_LOC[Sample],Sample)
+
+########### DECIDE WHICH PATH OF THE PIPELINE TO TAKE: PAIR END OR NOT 
+
+def SAM_PE_OR_NOT(Sample):
+
+    if PAIRED_END[Sample]=='YES':
+        FILE="{}_PE.sam".format(Sample)
+    if PAIRED_END[Sample]=='NO':
+        FILE="{}_NONPE.sam".format(Sample)
+        
+    return FILE
+
+###### FINAL FILES SET UP
+SAMPLES=set(SAMPLES)
+REF_LOC='../../REFERENCE_GENOMES/'
+REF=REF_LOC+'GRCh38_latest_genomic.fna'
+
+for S in SAMPLES:
+    print(S,PAIRED_END[S],DIR_LOC[S])
+
+###### One Rule to Rule them ALL
+
+rule all:
+    input:
+        expand("{sample}.sorted", sample=SAMPLES),
+        # expand("{sample}.bam", sample=SAMPLES),
+        # expand("{sample}.bam.bai", sample=SAMPLES)
+
+
+
+
+
+
+
+
+
+###################################################################################################################### SAMPLE PREP ############################################################################################################################
+
+###### PE
+rule Adapter_trimming_PE:
+    input:
+        r1=lambda wildcards: LocationOfPairedSample1(wildcards.sample),
+        r2=lambda wildcards: LocationOfPairedSample2(wildcards.sample)
+
+    output:
+        o1=temp('{sample}_1_FASTP.fastq.gz'),
+        o2=temp('{sample}_2_FASTP.fastq.gz')
+    threads: 16
+    shell:
+        "fastp -i {input.r1} -I {input.r2} -o {output.o1}  -O {output.o2} --length_required 30  --thread {threads}"
+
+
+
+######## NON PE
+
+rule Adapter_trimming_NON_PE:
+    input:
+        R= lambda wildcards: LocationOfNonPairedSample(wildcards.sample)
+    output:
+        TR=temp("{sample}.trimmed.fastq.gz")
+    threads: 16
+    shell:
+        "fastp -i {input.R} -o {output.TR} --length_required 30 --thread {threads}"
+
+
+
+
+
+
+
+
+
+
+########################################################################################################################### ALIGNMENT ###########################################################################################################################
+
+######## PE 
+rule BWA_PE_aln_1:
+    input:
+        r1='{sample}_1_FASTP.fastq.gz',
+        R=REF
+    output:
+        o1=temp("{sample}_1.sai")
+    threads: 16
+    shell:
+        "bwa aln -t {threads} {input.R} {input.r1} > {output.o1}"
+   
+
+
+rule BWA_PE_aln_2:
+    input:
+        r2='{sample}_2_FASTP.fastq.gz',
+        R=REF
+    output:
+        o2=temp("{sample}_2.sai")
+    threads: 16
+    shell:
+        "bwa aln -t {threads} {input.R} {input.r2} > {output.o2}"
+
+
+
+rule BWA_PE_sampe:
+    input:
+        r1="{sample}_1.sai",
+        r2="{sample}_2.sai",
+        raw1='{sample}_1_FASTP.fastq.gz',
+        raw2='{sample}_2_FASTP.fastq.gz',
+        R=REF
+    output:
+        SAM=temp("{sample}_PE.sam")
+    threads: 16
+    shell:
+        "bwa sampe {input.R} {input.r1} {input.r2} {input.raw1} {input.raw2} > {output.SAM}"
+
+
+
+######## NON PE 
+
+
+rule BWA_aln_NON_PE:
+    input:
+        TR="{sample}.trimmed.fastq.gz",
+        R=REF
+    output:
+        SAI=temp("{sample}.sai")
+    threads: 16
+    shell:
+        "bwa aln -t {threads} {input.R} {input.TR} > {output.SAI}"
+    
+
+rule BWA_samse_NON_PE:
+    input:
+        SAI="{sample}.sai",
+        R=REF,
+        TR="{sample}.trimmed.fastq.gz"
+    output:
+        SAM=temp("{sample}_NONPE.sam")
+    shell:
+        "bwa samse {input.R} {input.SAI} {input.TR} > {output.SAM}"
+
+
+
+
+
+
+
+
+
+
+################################################################################## BAM CONVERSION AND CLEAN-UP $#################################################################################################################
+
+
+
+
+
+
+
+
+rule samtools_convert_to_bam:
+    input:
+        SAM=lambda wildcards: SAM_PE_OR_NOT(wildcards.sample)
+    output:
+        BAM=temp("{sample}.initial")
+    threads: 4
+    shell:
+        "samtools view -S --threads={threads} -b {input.SAM} > {output.BAM}"
+
+
+rule samtools_fix_bam:
+    input:
+        BAM="{sample}.initial"
+    output:
+        FIXED_BAM=temp("{sample}.fixed")
+    threads: 4
+    shell:
+        "samtools fixmate -@ {threads} -m {input.BAM} {output.FIXED_BAM}"
+
+
+rule samtools_sort:
+    input:
+        FIXED_BAM="{sample}.fixed"
+    output:
+        SORTED_BAM="{sample}.sorted"
+    threads: 4
+    shell:
+        "samtools sort {input.FIXED_BAM}  -@ {threads} -o {output.SORTED_BAM}"
+
+
+
+
+##### Merge bams corresponding to same individual
+
+
+################################################################################## FINAL BAM DEMULTIPLEXING $####$$$$$$$$#############################################################################################################
+
+# rule Combine_Same_Sample_Bams:
+    # input:Function
+    # output:
+        # expand('{com_sample}.combined',com_sample=list_of_Comb_samples)
+    # run:
+        # use_dictionary_to_find_and_combine_bams
+
+
+
+# rule samtools_remove_dupl_bam:
+    # input:
+        # SORTED_BAM="{sample}.sorted"
+    # output:
+        # MARKED_BAM=temp("{sample}.marked")
+    # threads: 4
+    # shell:
+        # "samtools markdup --mode t -S -r -@ {threads} {input.SORTED_BAM} {output.MARKED_BAM}"
+
+
+
+# rule samtools_final_filter_bam:
+    # input:
+        # MARKED_BAM="{sample}.marked"
+    # output:
+        # FILTERED_BAM="{sample}.filtered"
+    # threads: 4
+    # shell:
+        # "samtools view -@ {threads} -q 30 -F 0x404 -b -o {output.FILTERED_BAM} {input.MARKED_BAM}"
+
+
+
+
+# rule samtools_index:
+    # input:
+        # FILTERED_BAM="{sample}.filtered"
+    # output:
+        # BAI="{sample}.filtered.bai"
+    # threads: 4
+    # shell:
+        # "samtools index -b {input.FILTERED_BAM} -@ {threads}"
+
+
+# rule rename files:
+    # input:
+        # FILTERED_BAM="{sample}.filtered",
+        # FILTERED_BAI="{sample}.filtered.bai"
+    # output:
+        # RENAMED_BAM="{sample}.bam",
+        # RENAMED_BAI="{sample}.bam.bai"
+    # run:
+        # shell("mv {input.FILTERED_BAM} {output.RENAMED_BAM}")
+        # shell("mv {input.FILTERED_BAI} {output.RENAMED_BAI}")

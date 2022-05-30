@@ -1,0 +1,177 @@
+import os
+import os.path
+from os import listdir
+from os.path import isfile, join
+
+
+
+################################################################################################################ SET UP ################################################################################################################
+
+SAMPLES=[]
+SORTED_SAMPLES=[]
+DIR_LOC={}
+LIBS_TO_SAMPLE={}
+META_DATA_FILE=''
+BAM_FOLDERS=['./']
+
+
+### Find the location of all 'sorted' BAM files
+for BAM_PATH in BAM_FOLDERS:
+
+    BAM_FILES = [f for f in listdir(BAM_PATH) if isfile(join(BAM_PATH, f))]
+    BAM_FILES = [f for f in FASTQ_FILES if '.fastq' in f]
+    
+    for FILE in BAM_FILES:
+    
+        SAMPLE_HERE=FILE.split('.sorted')[0]
+        DIR_LOC[SAMPLE_HERE]=BAM_PATH
+        SORTED_SAMPLES.append(SAMPLE_HERE)
+
+
+
+### Use metadata to link individual libraries to their sample
+
+
+#Discard first line? <<<<<<<<<<
+for LINE in META_DATA_FILE:
+    
+    LINE=LINE.strip().split()
+    SAMPLE_HERE=LINE[?]
+    SORTED_HERE=LINE[?]
+    
+    if SAMPLE_HERE in LIBS_TO_SAMPLE.keys():
+        LIBS_TO_SAMPLE[SAMPLE_HERE].append(SORTED_HERE)
+    else:
+        LIBS_TO_SAMPLE[SAMPLE_HERE]=[SORTED_HERE]
+        SAMPLES.append(SAMPLE_HERE)
+
+
+
+
+
+
+###### FINAL FILES SET UP
+SORTED_SAMPLES=list(set(SORTED_SAMPLES))
+SAMPLES=list(set(SAMPLES))
+
+###### Print number of samples
+SAMPLES=SAMPLES[0:2] ############################### TESTING!
+print('Number of Samples to be processed:  ',len(SAMPLES))
+
+
+######## Get full path of Sorted Sample
+
+def LocationOfSortedSample(SortedSample):
+    return "{}{}.sorted".format(DIR_LOC[SortedSample],SortedSample)
+
+
+########### Function to return list of sorted files corresponding to each sample
+
+def GetSortedForSample(Sample):
+
+    SORTED_BAMS=LIBS_TO_SAMPLE[Sample]
+    ## Use previous function to get the path to the sorted bams instead of just names // or just use the above code here
+    SORTED_BAMS=','.join(SORTED_BAMS)
+    return SORTED_BAMS
+
+
+##### Print out Each sample and its corresponding sorted bam files
+
+for S in SAMPLES:
+    print(S,LIBS_TO_SAMPLE[S])
+
+
+###### One Rule to Rule them ALL
+
+rule all:
+    input:
+        expand("{sample}.combined", sample=SAMPLES),
+        # expand("FINISHED/{sample}.bam", sample=SAMPLES),
+        # expand("FINISHED/{sample}.bam.bai", sample=SAMPLES)
+
+
+
+
+##### Merge bams corresponding to same individual
+
+
+################################################################################## LIBRARY MERGING AND FINAL FILTERING #################################################################################################################
+
+rule Combine_Same_Sample_Bams:
+    input:
+        SORTED_BAMS=Function
+    output:
+        COMBINED=temp('{sample}.combined')
+    threads: 2
+    run:
+        #string of bams - seperated by comma (?)
+        ## shell('samtools merge {LIST_IN_STRING_FORMAT} {threads} -o {COMBINED}')
+
+
+
+rule samtools_remove_dupl_bam:
+    input:
+        SORTED_BAM="{sample}.combined"
+    output:
+        MARKED_BAM=temp("{sample}.marked")
+    threads: 4
+    shell:
+        "samtools markdup --mode t -S -r -@ {threads} {input.SORTED_BAM} {output.MARKED_BAM}"
+
+
+
+rule samtools_final_filter_bam:
+    input:
+        MARKED_BAM="{sample}.marked"
+    output:
+        FILTERED_BAM="{sample}.filtered"
+    threads: 4
+    shell:
+        "samtools view -@ {threads} -q 30 -F 0x404 -b -o {output.FILTERED_BAM} {input.MARKED_BAM}"
+
+
+
+
+rule samtools_index:
+    input:
+        FILTERED_BAM="{sample}.filtered"
+    output:
+        BAI="{sample}.filtered.bai"
+    threads: 4
+    shell:
+        "samtools index -b {input.FILTERED_BAM} -@ {threads}"
+
+
+
+
+rule rename_files:
+    input:
+        FILTERED_BAM="{sample}.filtered",
+        FILTERED_BAI="{sample}.filtered.bai"
+    output:
+        RENAMED_BAM="{sample}.bam",
+        RENAMED_BAI="{sample}.bam.bai"
+    run:
+        shell("mv {input.FILTERED_BAM} {output.RENAMED_BAM}")
+        shell("mv {input.FILTERED_BAI} {output.RENAMED_BAI}")
+
+
+
+
+
+
+# rule create_folder_and_move_files_in:
+    # input:
+        # RENAMED_BAM="{sample}.bam",
+        # RENAMED_BAI="{sample}.bam.bai"
+    # output:
+        # MOVED_BAM="FINISHED/{sample}.bam",
+        # MOVED_BAI="FINISHED/{sample}.bam.bai"
+        
+    # run:
+        ##### check if folder 'FINISHED' exists , if not create items
+        #### if (os.path.exists('FINISHED')==True):
+        #### else:
+        #### now move files into folder
+        #### shell('mv {RENAMED_BAM} {MOVED_BAM}')
+        #### shell('mv {RENAMED_BAI} {MOVED_BAI}')
