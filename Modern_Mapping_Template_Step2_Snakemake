@@ -11,7 +11,10 @@ SAMPLES=[]
 SORTED_SAMPLES=[]
 DIR_LOC={}
 LIBS_TO_SAMPLE={}
-META_DATA_FILE=''
+
+if os.path.exists(METADATA):
+    META_DATA_FILE=open('METADATA','r')
+
 BAM_FOLDERS=['./']
 
 
@@ -19,34 +22,48 @@ BAM_FOLDERS=['./']
 for BAM_PATH in BAM_FOLDERS:
 
     BAM_FILES = [f for f in listdir(BAM_PATH) if isfile(join(BAM_PATH, f))]
-    BAM_FILES = [f for f in FASTQ_FILES if '.fastq' in f]
+    BAM_FILES = [f for f in BAM_FILES if '.sorted' in f]
     
     for FILE in BAM_FILES:
     
         SAMPLE_HERE=FILE.split('.sorted')[0]
-        DIR_LOC[SAMPLE_HERE]=BAM_PATH
+        DIR_LOC[SAMPLE_HERE]=BAM_PATH.replace('./','')
         SORTED_SAMPLES.append(SAMPLE_HERE)
 
 
 
+SORTED_SAMPLES_WITH_NO_MERGING=[]
+
 ### Use metadata to link individual libraries to their sample
 
-
-#Discard first line? <<<<<<<<<<
-for LINE in META_DATA_FILE:
-    
-    LINE=LINE.strip().split()
-    SAMPLE_HERE=LINE[?]
-    SORTED_HERE=LINE[?]
-    
-    if SAMPLE_HERE in LIBS_TO_SAMPLE.keys():
-        LIBS_TO_SAMPLE[SAMPLE_HERE].append(SORTED_HERE)
-    else:
-        LIBS_TO_SAMPLE[SAMPLE_HERE]=[SORTED_HERE]
-        SAMPLES.append(SAMPLE_HERE)
+#### Read METADATA header
+if os.path.exists(METADATA):
+    META_DATA_FILE.readline()
 
 
+    #### Read METADATA file, create Dictionary
 
+    for LINE in META_DATA_FILE:
+        
+        LINE=LINE.strip().split()
+        # print(LINE)
+        SAMPLE_HERE=LINE[1]
+        SORTED_HERE=LINE[3]
+        SORTED_SAMPLES_WITH_NO_MERGING.append(SORTED_HERE)
+        
+        if SAMPLE_HERE in LIBS_TO_SAMPLE.keys():
+            LIBS_TO_SAMPLE[SAMPLE_HERE].append(SORTED_HERE)
+        else:
+            LIBS_TO_SAMPLE[SAMPLE_HERE]=[SORTED_HERE]
+            SAMPLES.append(SAMPLE_HERE)
+
+
+
+#### If sorted but only one , will still try to merge
+
+SORTED_SAMPLES_WITH_NO_MERGING=[X for X in SORTED_SAMPLES if X not in SORTED_SAMPLES_WITH_NO_MERGING]
+for X in SORTED_SAMPLES_WITH_NO_MERGING:
+    LIBS_TO_SAMPLE[X]=[X]
 
 
 
@@ -54,9 +71,24 @@ for LINE in META_DATA_FILE:
 SORTED_SAMPLES=list(set(SORTED_SAMPLES))
 SAMPLES=list(set(SAMPLES))
 
+
+
+
+
 ###### Print number of samples
-SAMPLES=SAMPLES[0:2] ############################### TESTING!
-print('Number of Samples to be processed:  ',len(SAMPLES))
+SAMPLES=SAMPLES[0:3] ############################### TESTING! ##########################################################################################################################################################################################
+
+
+##### Print out Each sample and its corresponding sorted bam files
+
+for S in SAMPLES:
+    print(S,LIBS_TO_SAMPLE[S])
+
+
+
+
+print(f'Number of Sorted BAM files to be processed :  {len(SORTED_SAMPLES)}')
+print('Number of Samples they correspond to :  ',len(SAMPLES))
 
 
 ######## Get full path of Sorted Sample
@@ -70,15 +102,9 @@ def LocationOfSortedSample(SortedSample):
 def GetSortedForSample(Sample):
 
     SORTED_BAMS=LIBS_TO_SAMPLE[Sample]
-    ## Use previous function to get the path to the sorted bams instead of just names // or just use the above code here
-    SORTED_BAMS=','.join(SORTED_BAMS)
+    SORTED_BAMS=[ LocationOfSortedSample(X) for X in SORTED_BAMS ]
+    # SORTED_BAMS=','.join(SORTED_BAMS)
     return SORTED_BAMS
-
-
-##### Print out Each sample and its corresponding sorted bam files
-
-for S in SAMPLES:
-    print(S,LIBS_TO_SAMPLE[S])
 
 
 ###### One Rule to Rule them ALL
@@ -92,6 +118,9 @@ rule all:
 
 
 
+
+
+
 ##### Merge bams corresponding to same individual
 
 
@@ -99,13 +128,13 @@ rule all:
 
 rule Combine_Same_Sample_Bams:
     input:
-        SORTED_BAMS=Function
+        SORTED_BAMS= lambda wildcards: GetSortedForSample(wildcards.sample)
     output:
         COMBINED=temp('{sample}.combined')
-    threads: 2
+    threads: 4
     run:
-        #string of bams - seperated by comma (?)
-        ## shell('samtools merge {LIST_IN_STRING_FORMAT} {threads} -o {COMBINED}')
+        RENAMED_SORTED_BAMS=' '.join(input.SORTED_BAMS)
+        shell('samtools merge --threads {threads} -o {output.COMBINED} -f {input.SORTED_BAMS}')
 
 
 
