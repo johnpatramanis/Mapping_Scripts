@@ -15,7 +15,7 @@ LIBS_TO_SAMPLE={}
 if os.path.exists('METADATA'):
     META_DATA_FILE=open('METADATA','r')
 
-BAM_FOLDERS=['./']
+BAM_FOLDERS=['./NEED_MERGING/']
 
 
 ### Find the location of all 'sorted' BAM files
@@ -160,7 +160,7 @@ rule samtools_final_filter_bam:
         FILTERED_BAM="{sample}.filtered"
     threads: 4
     shell:
-        "samtools view -@ {threads} -q 30 -F 0x404 -b -o {output.FILTERED_BAM} {input.MARKED_BAM}"
+        "samtools view -@ {threads} -q 15 -F 0x404 -b -o {output.FILTERED_BAM} {input.MARKED_BAM}"
 
 
 ### Index the final bam file
@@ -188,25 +188,3 @@ rule rename_files:
     run:
         shell("mv {input.FILTERED_BAM} {output.RENAMED_BAM}")
         shell("mv {input.FILTERED_BAI} {output.RENAMED_BAI}")
-
-
-
-
-### Move the BAM file to new location/file
-
-rule create_folder_and_move_files_in:
-    input:
-        RENAMED_BAM="{sample}.bam",
-        RENAMED_BAI="{sample}.bam.bai"
-    output:
-        MOVED_BAM="FINISHED/{sample}.bam",
-        MOVED_BAI="FINISHED/{sample}.bam.bai"
-        
-    run:
-        ### check if folder 'FINISHED' exists , if not create items
-        if (os.path.exists('FINISHED')==False):
-            shell('mkdir FINISHED')
-        else:
-        ### now move files into folder
-            shell('mv {input.RENAMED_BAM} {output.MOVED_BAM}')
-            shell('mv {input.RENAMED_BAI} {output.MOVED_BAI}')
