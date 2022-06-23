@@ -1,0 +1,251 @@
+import os
+import os.path
+from os import listdir
+from os.path import isfile, join
+
+
+
+################################################################################################################ SET UP ################################################################################################################
+
+SAMPLES=[]
+DIR_LOC={}
+PAIRED_END={}
+FASTQ_FOLDERS=['../From_Simon/Modern/']
+
+for FASTQ_PATH in FASTQ_FOLDERS:
+
+    FASTQ_FILES = [f for f in listdir(FASTQ_PATH) if isfile(join(FASTQ_PATH, f))]
+    FASTQ_FILES = [f for f in FASTQ_FILES if '.fastq' in f]
+    for FILE in FASTQ_FILES:
+    
+        SAMPLE_HERE=FILE.split('.fastq')[0]
+        
+        if (SAMPLE_HERE[len(SAMPLE_HERE)-2:len(SAMPLE_HERE)]=='_1') or (SAMPLE_HERE[len(SAMPLE_HERE)-2:len(SAMPLE_HERE)]=='_2'):
+            SAMPLE_HERE=FILE.split('_1.fastq')[0]
+            SAMPLE_HERE=SAMPLE_HERE.split('_2.fastq')[0]
+            DIR_LOC[SAMPLE_HERE]=FASTQ_PATH
+            PAIRED_END[SAMPLE_HERE]='YES'
+            SAMPLES.append(SAMPLE_HERE)
+            
+        else :
+            DIR_LOC[SAMPLE_HERE]=FASTQ_PATH
+            PAIRED_END[SAMPLE_HERE]='NO'
+            SAMPLES.append(SAMPLE_HERE)
+
+
+
+SAMPLES=list(set(SAMPLES))
+print(len(SAMPLES))
+SAMPLES=SAMPLES[0:2] ############################### TESTING!
+
+######## GET LOCATION OF SAMPLE
+
+def LocationOfPairedSample1(Sample):
+    return "{}{}_1.fastq.gz".format(DIR_LOC[Sample],Sample)
+    
+def LocationOfPairedSample2(Sample):
+    return "{}{}_2.fastq.gz".format(DIR_LOC[Sample],Sample)
+
+
+def LocationOfNonPairedSample(Sample):
+    return "{}{}.fastq.gz".format(DIR_LOC[Sample],Sample)
+
+########### DECIDE WHICH PATH OF THE PIPELINE TO TAKE: PAIR END OR NOT 
+
+def SAM_PE_OR_NOT(Sample):
+
+    if PAIRED_END[Sample]=='YES':
+        FILE="{}_PE.sam".format(Sample)
+    if PAIRED_END[Sample]=='NO':
+        FILE="{}_NONPE.sam".format(Sample)
+        
+    return FILE
+
+###### FINAL FILES SET UP
+SAMPLES=set(SAMPLES)
+REF_LOC='../REFERENCE_GENOME/'
+REF=REF_LOC+'loxAfr3.fa'
+
+for S in SAMPLES:
+    print(S,PAIRED_END[S],DIR_LOC[S])
+
+###### One Rule to Rule them ALL
+
+rule all:
+    input:
+        REF+'.index',
+        expand("{sample}.sorted", sample=SAMPLES),
+
+
+
+
+
+
+######################################################################################################################
+#### REF PREP
+
+rule Index_Reference:
+    input:
+        REF
+    output:
+        REF+'.index'
+    shell:
+        "bwa index {input}"
+        
+        
+
+
+###################################################################################################################### SAMPLE PREP ############################################################################################################################
+
+###### PE
+rule Adapter_trimming_PE:
+    input:
+        r1=lambda wildcards: LocationOfPairedSample1(wildcards.sample),
+        r2=lambda wildcards: LocationOfPairedSample2(wildcards.sample)
+
+    output:
+        o1=temp('{sample}_1_FASTP.fastq.gz'),
+        o2=temp('{sample}_2_FASTP.fastq.gz')
+    threads: 16
+    shell:
+        "fastp -i {input.r1} -I {input.r2} -o {output.o1}  -O {output.o2} --length_required 30  --thread {threads}"
+
+
+
+######## NON PE
+
+rule Adapter_trimming_NON_PE:
+    input:
+        R= lambda wildcards: LocationOfNonPairedSample(wildcards.sample)
+    output:
+        TR=temp("{sample}.trimmed.fastq.gz")
+    threads: 16
+    shell:
+        "fastp -i {input.R} -o {output.TR} --length_required 30 --thread {threads}"
+
+
+
+
+
+
+
+
+
+
+########################################################################################################################### ALIGNMENT ###########################################################################################################################
+
+######## PE 
+rule BWA_PE_aln_1:
+    input:
+        r1='{sample}_1_FASTP.fastq.gz',
+        R=REF,
+        RI=REF+'.index'
+    output:
+        o1=temp("{sample}_1.sai")
+    threads: 16
+    shell:
+        "bwa aln -t {threads} {input.R} {input.r1} > {output.o1}"
+   
+
+
+rule BWA_PE_aln_2:
+    input:
+        r2='{sample}_2_FASTP.fastq.gz',
+        R=REF,
+        RI=REF+'.index'
+    output:
+        o2=temp("{sample}_2.sai")
+    threads: 16
+    shell:
+        "bwa aln -t {threads} {input.R} {input.r2} > {output.o2}"
+
+
+
+rule BWA_PE_sampe:
+    input:
+        r1="{sample}_1.sai",
+        r2="{sample}_2.sai",
+        raw1='{sample}_1_FASTP.fastq.gz',
+        raw2='{sample}_2_FASTP.fastq.gz',
+        R=REF,
+        RI=REF+'.index'
+    output:
+        SAM=temp("{sample}_PE.sam")
+    threads: 16
+    shell:
+        "bwa sampe {input.R} {input.r1} {input.r2} {input.raw1} {input.raw2} > {output.SAM}"
+
+
+
+######## NON PE 
+
+
+rule BWA_aln_NON_PE:
+    input:
+        TR="{sample}.trimmed.fastq.gz",
+        R=REF,
+        RI=REF+'.index'
+    output:
+        SAI=temp("{sample}.sai")
+    threads: 16
+    shell:
+        "bwa aln -t {threads} {input.R} {input.TR} > {output.SAI}"
+    
+
+rule BWA_samse_NON_PE:
+    input:
+        SAI="{sample}.sai",
+        R=REF,
+        RI=REF+'.index',
+        TR="{sample}.trimmed.fastq.gz"
+    output:
+        SAM=temp("{sample}_NONPE.sam")
+    shell:
+        "bwa samse {input.R} {input.SAI} {input.TR} > {output.SAM}"
+
+
+
+
+
+
+
+
+
+
+################################################################################## BAM CONVERSION AND CLEAN-UP $#################################################################################################################
+
+
+
+
+
+
+
+
+rule samtools_convert_to_bam:
+    input:
+        SAM=lambda wildcards: SAM_PE_OR_NOT(wildcards.sample)
+    output:
+        BAM=temp("{sample}.initial")
+    threads: 4
+    shell:
+        "samtools view -S --threads={threads} -b {input.SAM} > {output.BAM}"
+
+
+rule samtools_fix_bam:
+    input:
+        BAM="{sample}.initial"
+    output:
+        FIXED_BAM=temp("{sample}.fixed")
+    threads: 4
+    shell:
+        "samtools fixmate -@ {threads} -m {input.BAM} {output.FIXED_BAM}"
+
+
+rule samtools_sort:
+    input:
+        FIXED_BAM="{sample}.fixed"
+    output:
+        SORTED_BAM="{sample}.sorted"
+    threads: 4
+    shell:
+        "samtools sort {input.FIXED_BAM}  -@ {threads} -o {output.SORTED_BAM}"
