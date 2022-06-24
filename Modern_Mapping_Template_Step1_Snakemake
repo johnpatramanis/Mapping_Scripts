@@ -65,6 +65,7 @@ SAMPLES=set(SAMPLES)
 REF_LOC='../../REFERENCE_GENOMES/'
 REF=REF_LOC+'GRCh38_latest_genomic.fna'
 
+
 for S in SAMPLES:
     print(S,PAIRED_END[S],DIR_LOC[S])
 
@@ -72,16 +73,26 @@ for S in SAMPLES:
 
 rule all:
     input:
+        REF+'.bwt',
         expand("{sample}.sorted", sample=SAMPLES),
-        # expand("{sample}.bam", sample=SAMPLES),
-        # expand("{sample}.bam.bai", sample=SAMPLES)
 
 
 
 
 
 
+######################################################################################################################
+#### REF PREP
 
+rule Index_Reference:
+    input:
+        REF
+    output:
+        REF+'.bwt'
+    shell:
+        "bwa index {input}"
+        
+        
 
 
 ###################################################################################################################### SAMPLE PREP ############################################################################################################################
@@ -127,7 +138,8 @@ rule Adapter_trimming_NON_PE:
 rule BWA_PE_aln_1:
     input:
         r1='{sample}_1_FASTP.fastq.gz',
-        R=REF
+        R=REF,
+        RI=REF+'.bwt'
     output:
         o1=temp("{sample}_1.sai")
     threads: 16
@@ -139,7 +151,8 @@ rule BWA_PE_aln_1:
 rule BWA_PE_aln_2:
     input:
         r2='{sample}_2_FASTP.fastq.gz',
-        R=REF
+        R=REF,
+        RI=REF+'.bwt'
     output:
         o2=temp("{sample}_2.sai")
     threads: 16
@@ -154,7 +167,8 @@ rule BWA_PE_sampe:
         r2="{sample}_2.sai",
         raw1='{sample}_1_FASTP.fastq.gz',
         raw2='{sample}_2_FASTP.fastq.gz',
-        R=REF
+        R=REF,
+        RI=REF+'.bwt'
     output:
         SAM=temp("{sample}_PE.sam")
     threads: 16
@@ -169,7 +183,8 @@ rule BWA_PE_sampe:
 rule BWA_aln_NON_PE:
     input:
         TR="{sample}.trimmed.fastq.gz",
-        R=REF
+        R=REF,
+        RI=REF+'.bwt'
     output:
         SAI=temp("{sample}.sai")
     threads: 16
@@ -181,6 +196,7 @@ rule BWA_samse_NON_PE:
     input:
         SAI="{sample}.sai",
         R=REF,
+        RI=REF+'.bwt',
         TR="{sample}.trimmed.fastq.gz"
     output:
         SAM=temp("{sample}_NONPE.sam")
@@ -233,64 +249,3 @@ rule samtools_sort:
     threads: 4
     shell:
         "samtools sort {input.FIXED_BAM}  -@ {threads} -o {output.SORTED_BAM}"
-
-
-
-
-##### Merge bams corresponding to same individual
-
-
-################################################################################## FINAL BAM DEMULTIPLEXING $####$$$$$$$$#############################################################################################################
-
-# rule Combine_Same_Sample_Bams:
-    # input:Function
-    # output:
-        # expand('{com_sample}.combined',com_sample=list_of_Comb_samples)
-    # run:
-        # use_dictionary_to_find_and_combine_bams
-
-
-
-# rule samtools_remove_dupl_bam:
-    # input:
-        # SORTED_BAM="{sample}.sorted"
-    # output:
-        # MARKED_BAM=temp("{sample}.marked")
-    # threads: 4
-    # shell:
-        # "samtools markdup --mode t -S -r -@ {threads} {input.SORTED_BAM} {output.MARKED_BAM}"
-
-
-
-# rule samtools_final_filter_bam:
-    # input:
-        # MARKED_BAM="{sample}.marked"
-    # output:
-        # FILTERED_BAM="{sample}.filtered"
-    # threads: 4
-    # shell:
-        # "samtools view -@ {threads} -q 30 -F 0x404 -b -o {output.FILTERED_BAM} {input.MARKED_BAM}"
-
-
-
-
-# rule samtools_index:
-    # input:
-        # FILTERED_BAM="{sample}.filtered"
-    # output:
-        # BAI="{sample}.filtered.bai"
-    # threads: 4
-    # shell:
-        # "samtools index -b {input.FILTERED_BAM} -@ {threads}"
-
-
-# rule rename files:
-    # input:
-        # FILTERED_BAM="{sample}.filtered",
-        # FILTERED_BAI="{sample}.filtered.bai"
-    # output:
-        # RENAMED_BAM="{sample}.bam",
-        # RENAMED_BAI="{sample}.bam.bai"
-    # run:
-        # shell("mv {input.FILTERED_BAM} {output.RENAMED_BAM}")
-        # shell("mv {input.FILTERED_BAI} {output.RENAMED_BAI}")

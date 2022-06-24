@@ -73,7 +73,7 @@ for S in SAMPLES:
 
 rule all:
     input:
-        REF+'.index',
+        REF+'.bwt',
         expand("{sample}.sorted", sample=SAMPLES),
 
 
@@ -88,7 +88,7 @@ rule Index_Reference:
     input:
         REF
     output:
-        REF+'.index'
+        REF+'.bwt'
     shell:
         "bwa index {input}"
         
@@ -139,7 +139,7 @@ rule BWA_PE_aln_1:
     input:
         r1='{sample}_1_FASTP.fastq.gz',
         R=REF,
-        RI=REF+'.index'
+        RI=REF+'.bwt'
     output:
         o1=temp("{sample}_1.sai")
     threads: 16
@@ -152,7 +152,7 @@ rule BWA_PE_aln_2:
     input:
         r2='{sample}_2_FASTP.fastq.gz',
         R=REF,
-        RI=REF+'.index'
+        RI=REF+'.bwt'
     output:
         o2=temp("{sample}_2.sai")
     threads: 16
@@ -168,7 +168,7 @@ rule BWA_PE_sampe:
         raw1='{sample}_1_FASTP.fastq.gz',
         raw2='{sample}_2_FASTP.fastq.gz',
         R=REF,
-        RI=REF+'.index'
+        RI=REF+'.bwt'
     output:
         SAM=temp("{sample}_PE.sam")
     threads: 16
@@ -184,7 +184,7 @@ rule BWA_aln_NON_PE:
     input:
         TR="{sample}.trimmed.fastq.gz",
         R=REF,
-        RI=REF+'.index'
+        RI=REF+'.bwt'
     output:
         SAI=temp("{sample}.sai")
     threads: 16
@@ -196,7 +196,7 @@ rule BWA_samse_NON_PE:
     input:
         SAI="{sample}.sai",
         R=REF,
-        RI=REF+'.index',
+        RI=REF+'.bwt',
         TR="{sample}.trimmed.fastq.gz"
     output:
         SAM=temp("{sample}_NONPE.sam")
