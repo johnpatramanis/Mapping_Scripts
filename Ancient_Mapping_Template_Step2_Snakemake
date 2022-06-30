@@ -1,0 +1,190 @@
+import os
+import os.path
+from os import listdir
+from os.path import isfile, join
+
+
+
+################################################################################################################ SET UP ################################################################################################################
+
+SAMPLES=[]
+SORTED_SAMPLES=[]
+DIR_LOC={}
+LIBS_TO_SAMPLE={}
+
+if os.path.exists('METADATA'):
+    META_DATA_FILE=open('METADATA','r')
+
+BAM_FOLDERS=['./NEED_MERGING/']
+
+
+### Find the location of all 'sorted' BAM files
+for BAM_PATH in BAM_FOLDERS:
+
+    BAM_FILES = [f for f in listdir(BAM_PATH) if isfile(join(BAM_PATH, f))]
+    BAM_FILES = [f for f in BAM_FILES if '.sorted' in f]
+    
+    for FILE in BAM_FILES:
+    
+        SAMPLE_HERE=FILE.split('.sorted')[0]
+        DIR_LOC[SAMPLE_HERE]=BAM_PATH.replace('./','')
+        SORTED_SAMPLES.append(SAMPLE_HERE)
+
+
+
+SORTED_SAMPLES_WITH_NO_MERGING=[]
+
+### Use metadata to link individual libraries to their sample
+
+#### Read METADATA header
+if os.path.exists('METADATA'):
+    META_DATA_FILE.readline()
+
+
+    #### Read METADATA file, create Dictionary
+
+    for LINE in META_DATA_FILE:
+        
+        LINE=LINE.strip().split()
+        # print(LINE)
+        SAMPLE_HERE=LINE[1]
+        SORTED_HERE=LINE[3]
+        SORTED_SAMPLES_WITH_NO_MERGING.append(SORTED_HERE)
+        
+        if SAMPLE_HERE in LIBS_TO_SAMPLE.keys():
+            LIBS_TO_SAMPLE[SAMPLE_HERE].append(SORTED_HERE)
+        else:
+            LIBS_TO_SAMPLE[SAMPLE_HERE]=[SORTED_HERE]
+            SAMPLES.append(SAMPLE_HERE)
+
+
+
+#### If sorted but only one , will still try to merge
+
+SORTED_SAMPLES_WITH_NO_MERGING=[X for X in SORTED_SAMPLES if X not in SORTED_SAMPLES_WITH_NO_MERGING]
+for X in SORTED_SAMPLES_WITH_NO_MERGING:
+    LIBS_TO_SAMPLE[X]=[X]
+
+
+
+###### FINAL FILES SET UP
+SORTED_SAMPLES=sorted(list(set(SORTED_SAMPLES)))
+SAMPLES=sorted(list(set(SAMPLES)))
+
+
+
+
+
+###### Print number of samples
+# SAMPLES=SAMPLES[0:2] ############################### TESTING! ##########################################################################################################################################################################################
+
+
+##### Print out Each sample and its corresponding sorted bam files
+
+for S in SAMPLES:
+    print(f'Sample labeled: {S}, to be created by merging these sorted bam files together : {LIBS_TO_SAMPLE[S]}')
+
+
+
+
+print(f'Number of Sorted BAM files to be processed :  {len(SORTED_SAMPLES)}')
+print('Number of Samples they correspond to :  ',len(SAMPLES))
+
+
+######## Get full path of Sorted Sample
+
+def LocationOfSortedSample(SortedSample):
+    return "{}{}.sorted".format(DIR_LOC[SortedSample],SortedSample)
+
+
+
+########### Function to return list of sorted files corresponding to each sample
+
+def GetSortedForSample(Sample):
+
+    SORTED_BAMS=LIBS_TO_SAMPLE[Sample]
+    SORTED_BAMS=[ LocationOfSortedSample(X) for X in SORTED_BAMS ]
+    return SORTED_BAMS
+
+
+###### One Rule to Rule them ALL
+
+rule all:
+    input:
+        # expand("{sample}.combined", sample=SAMPLES),
+        expand("{sample}.bam", sample=SAMPLES),
+        expand("{sample}.bam.bai", sample=SAMPLES)
+
+
+
+
+
+
+
+##### Merge bams corresponding to same individual
+
+
+################################################################################## LIBRARY MERGING AND FINAL FILTERING #################################################################################################################
+
+### Merge Different BAM files if they correspond to the same sample
+
+rule Combine_Same_Sample_Bams:
+    input:
+        SORTED_BAMS= lambda wildcards: GetSortedForSample(wildcards.sample)
+    output:
+        COMBINED=temp('{sample}.combined')
+    threads: 4
+    run:
+        RENAMED_SORTED_BAMS=' '.join(input.SORTED_BAMS)
+        shell('samtools merge --threads {threads} -o {output.COMBINED} -f {input.SORTED_BAMS}')
+
+
+### Markdup BAM files for different things: Mark supplementary reads of duplicates as duplicates, remove duplicates
+
+rule samtools_markedup_bam:
+    input:
+        SORTED_BAM="{sample}.combined"
+    output:
+        MARKED_BAM=temp("{sample}.marked")
+    threads: 4
+    shell:
+        "samtools markdup --mode t -S -r -@ {threads} {input.SORTED_BAM} {output.MARKED_BAM}"
+
+
+### Filter BAM files for MAPQ of >30 and 
+
+rule samtools_final_filter_bam:
+    input:
+        MARKED_BAM="{sample}.marked"
+    output:
+        FILTERED_BAM="{sample}.filtered"
+    threads: 4
+    shell:
+        "samtools view -@ {threads} -q 10 -F 0x404 -b -o {output.FILTERED_BAM} {input.MARKED_BAM}"
+
+
+### Index the final bam file
+
+
+rule samtools_index:
+    input:
+        FILTERED_BAM="{sample}.filtered"
+    output:
+        BAI="{sample}.filtered.bai"
+    threads: 4
+    shell:
+        "samtools index -b {input.FILTERED_BAM} -@ {threads}"
+
+
+### Rename the BAM file
+
+rule rename_files:
+    input:
+        FILTERED_BAM="{sample}.filtered",
+        FILTERED_BAI="{sample}.filtered.bai"
+    output:
+        RENAMED_BAM="{sample}.bam",
+        RENAMED_BAI="{sample}.bam.bai"
+    run:
+        shell("mv {input.FILTERED_BAM} {output.RENAMED_BAM}")
+        shell("mv {input.FILTERED_BAI} {output.RENAMED_BAI}")

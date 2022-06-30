@@ -10,7 +10,7 @@ from os.path import isfile, join
 SAMPLES=[]
 DIR_LOC={}
 PAIRED_END={}
-FASTQ_FOLDERS=['../GREAT_APE_GENOMES_PROJECT_FASTQ/']
+FASTQ_FOLDERS=['../PONGO_STUDY_FASTQ/']
 
 for FASTQ_PATH in FASTQ_FOLDERS:
 
@@ -21,7 +21,8 @@ for FASTQ_PATH in FASTQ_FOLDERS:
         SAMPLE_HERE=FILE.split('.fastq')[0]
         
         if (SAMPLE_HERE[len(SAMPLE_HERE)-2:len(SAMPLE_HERE)]=='_1') or (SAMPLE_HERE[len(SAMPLE_HERE)-2:len(SAMPLE_HERE)]=='_2'):
-            SAMPLE_HERE=SAMPLE_HERE.split('_')[0]
+            SAMPLE_HERE=FILE.split('_1.fastq')[0]
+            SAMPLE_HERE=SAMPLE_HERE.split('_2.fastq')[0]
             DIR_LOC[SAMPLE_HERE]=FASTQ_PATH
             PAIRED_END[SAMPLE_HERE]='YES'
             SAMPLES.append(SAMPLE_HERE)
@@ -35,7 +36,7 @@ for FASTQ_PATH in FASTQ_FOLDERS:
 
 SAMPLES=list(set(SAMPLES))
 print(len(SAMPLES))
-SAMPLES=SAMPLES ############################### TESTING!
+SAMPLES=SAMPLES[0:2] ############################### TESTING!
 
 ######## GET LOCATION OF SAMPLE
 
@@ -63,8 +64,7 @@ def SAM_PE_OR_NOT(Sample):
 ###### FINAL FILES SET UP
 SAMPLES=set(SAMPLES)
 REF_LOC='../../REFERENCE_GENOMES/'
-REF=REF_LOC+'GRCh38_latest_genomic.fna'
-
+REF=REF_LOC+'hg38.fa'
 
 for S in SAMPLES:
     print(S,PAIRED_END[S],DIR_LOC[S])

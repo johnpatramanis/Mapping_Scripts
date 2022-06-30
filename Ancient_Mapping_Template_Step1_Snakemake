@@ -10,7 +10,7 @@ from os.path import isfile, join
 SAMPLES=[]
 DIR_LOC={}
 PAIRED_END={}
-FASTQ_FOLDERS=['../From_Simon/Modern/']
+FASTQ_FOLDERS=['../From_Simon/Ancient/']
 
 for FASTQ_PATH in FASTQ_FOLDERS:
 
@@ -90,7 +90,7 @@ rule Index_Reference:
     output:
         REF+'.bwt'
     shell:
-        "bwa index {input}"
+        "bwa index -a bwtsw {input}"
         
         
 
@@ -144,7 +144,7 @@ rule BWA_PE_aln_1:
         o1=temp("{sample}_1.sai")
     threads: 16
     shell:
-        "bwa aln -t {threads} {input.R} {input.r1} > {output.o1}"
+        "bwa aln -t {threads} -l  16500 -n 0.01 -o 2 {input.R} {input.r1} > {output.o1}"
    
 
 
@@ -157,7 +157,7 @@ rule BWA_PE_aln_2:
         o2=temp("{sample}_2.sai")
     threads: 16
     shell:
-        "bwa aln -t {threads} {input.R} {input.r2} > {output.o2}"
+        "bwa aln -t {threads} -l  16500 -n 0.01 -o 2 {input.R} {input.r2} > {output.o2}"
 
 
 
@@ -188,7 +188,7 @@ rule BWA_aln_NON_PE:
         SAI=temp("{sample}.sai")
     threads: 16
     shell:
-        "bwa aln -t {threads} {input.R} {input.TR} > {output.SAI}"
+        "bwa aln -t {threads} -l  16500 -n 0.01 -o 2 {input.R} {input.TR} > {output.SAI}"
     
 
 rule BWA_samse_NON_PE:
