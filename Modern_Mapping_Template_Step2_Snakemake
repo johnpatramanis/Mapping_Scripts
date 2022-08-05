@@ -15,7 +15,7 @@ LIBS_TO_SAMPLE={}
 if os.path.exists('METADATA'):
     META_DATA_FILE=open('METADATA','r')
 
-BAM_FOLDERS=['./NEED_MERGING/']
+BAM_FOLDERS=['./']
 
 
 ### Find the location of all 'sorted' BAM files
@@ -46,7 +46,7 @@ if os.path.exists('METADATA'):
     for LINE in META_DATA_FILE:
         
         LINE=LINE.strip().split()
-        # print(LINE)
+        print(LINE)
         SAMPLE_HERE=LINE[1]
         SORTED_HERE=LINE[3]
         SORTED_SAMPLES_WITH_NO_MERGING.append(SORTED_HERE)
