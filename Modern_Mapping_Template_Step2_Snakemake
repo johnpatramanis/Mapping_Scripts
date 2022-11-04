@@ -9,7 +9,7 @@ from os.path import isfile, join
 
 SAMPLES=[]
 SORTED_SAMPLES=[]
-DIR_LOC={}
+DIR_LOC_SORTED={}
 LIBS_TO_SAMPLE={}
 
 if os.path.exists('METADATA'):
@@ -27,7 +27,7 @@ for BAM_PATH in BAM_FOLDERS:
     for FILE in BAM_FILES:
     
         SAMPLE_HERE=FILE.split('.sorted')[0]
-        DIR_LOC[SAMPLE_HERE]=BAM_PATH.replace('./','')
+        DIR_LOC_SORTED[SAMPLE_HERE]=BAM_PATH.replace('./','')
         SORTED_SAMPLES.append(SAMPLE_HERE)
 
 
@@ -36,8 +36,13 @@ SORTED_SAMPLES_WITH_NO_MERGING=[]
 
 ### Use metadata to link individual libraries to their sample
 
-#### Read METADATA header
-if os.path.exists('METADATA'):
+#### Read METADATA header ######################## This should be called as a function, for rule "Combine_Same_Sample_Bams", 
+                                          ######## It should look at the METADATA file and find which fastq samples correspond to the sample.
+                                          ######## Then its should check to see if any of them exists in the Fastq folder!
+
+
+
+if os.path.exists('METADATA'): ##### Should check labels of METADATA file to see if the required ones are there and in which order
     META_DATA_FILE.readline()
 
 
@@ -94,7 +99,7 @@ print('Number of Samples they correspond to :  ',len(SAMPLES))
 ######## Get full path of Sorted Sample
 
 def LocationOfSortedSample(SortedSample):
-    return "{}{}.sorted".format(DIR_LOC[SortedSample],SortedSample)
+    return "{}{}.sorted".format(DIR_LOC_SORTED[SortedSample],SortedSample)
 
 
 

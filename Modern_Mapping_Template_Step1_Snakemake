@@ -3,16 +3,101 @@ import os.path
 from os import listdir
 from os.path import isfile, join
 
+################################################################################################################################################################################################################################################################################################################################################
+################################################################### USEFULL FUNCTIONS
+######## GET LOCATION OF SAMPLE
 
 
-################################################################################################################ SET UP ################################################################################################################
+
+
+def LocationOfPairedSample1(Sample):
+    return "{}{}_1.fastq.gz".format(DIR_LOC[Sample],Sample)
+    
+def LocationOfPairedSample2(Sample):
+    return "{}{}_2.fastq.gz".format(DIR_LOC[Sample],Sample)
+
+def LocationOfNonPairedSample(Sample):
+    return "{}{}.fastq.gz".format(DIR_LOC[Sample],Sample)
+
+########### DECIDE WHICH PATH OF THE PIPELINE TO TAKE: PAIR END OR NOT 
+
+def SAM_PE_OR_NOT(Sample):
+
+    if PAIRED_END[Sample]=='YES':
+        FILE="{}_PE.sam".format(Sample)
+    if PAIRED_END[Sample]=='NO':
+        FILE="{}_NONPE.sam".format(Sample)
+        
+    return FILE
+
+
+######## Get full path of Sorted Sample
+
+def LocationOfSortedSample(SortedSample):
+    return "{}{}.sorted".format(DIR_LOC[SortedSample],SortedSample)
+
+
+
+########### Function to return list of sorted files corresponding to each sample
+
+def GetSortedForSample(Sample):
+    
+    
+    
+    
+    
+    SORTED_BAMS=LIBS_TO_SAMPLE[Sample]
+    SORTED_BAMS=[ LocationOfSortedSample(X) for X in SORTED_BAMS ]
+    return SORTED_BAMS
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+################################################################################################################ SET UP ################################################################################################################################################################################################################################
+
+
+
+
+
+
 
 SAMPLES=[]
+SORTED_SAMPLES=[]
 DIR_LOC={}
+DIR_LOC_SORTED={}
 PAIRED_END={}
-FASTQ_FOLDERS=['../PONGO_STUDY_FASTQ/']
+FASTQ_FOLDERS=['../PONGO_STUDY_FASTQ/'] ##### Set by user
+LIBS_TO_SAMPLE={}
 
-for FASTQ_PATH in FASTQ_FOLDERS:
+if os.path.exists('METADATA'):
+    META_DATA_FILE=open('METADATA','r')
+
+BAM_FOLDERS=['./']
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+for FASTQ_PATH in FASTQ_FOLDERS: #### Find which samples exist in fastq folder, make 'library'of them and at which format they exist
 
     FASTQ_FILES = [f for f in listdir(FASTQ_PATH) if isfile(join(FASTQ_PATH, f))]
     FASTQ_FILES = [f for f in FASTQ_FILES if '.fastq' in f]
@@ -36,35 +121,93 @@ for FASTQ_PATH in FASTQ_FOLDERS:
 
 SAMPLES=list(set(SAMPLES))
 print(len(SAMPLES))
-SAMPLES=SAMPLES[0:2] ############################### TESTING!
-
-######## GET LOCATION OF SAMPLE
-
-def LocationOfPairedSample1(Sample):
-    return "{}{}_1.fastq.gz".format(DIR_LOC[Sample],Sample)
-    
-def LocationOfPairedSample2(Sample):
-    return "{}{}_2.fastq.gz".format(DIR_LOC[Sample],Sample)
+###SAMPLES=SAMPLES[0:2] ############################### TESTING!
 
 
-def LocationOfNonPairedSample(Sample):
-    return "{}{}.fastq.gz".format(DIR_LOC[Sample],Sample)
 
-########### DECIDE WHICH PATH OF THE PIPELINE TO TAKE: PAIR END OR NOT 
 
-def SAM_PE_OR_NOT(Sample):
 
-    if PAIRED_END[Sample]=='YES':
-        FILE="{}_PE.sam".format(Sample)
-    if PAIRED_END[Sample]=='NO':
-        FILE="{}_NONPE.sam".format(Sample)
+### Use metadata to link individual libraries to their sample
+
+#### Read METADATA header ######################## This should be called as a function, for rule "Combine_Same_Sample_Bams", 
+                                          ######## It should look at the METADATA file and find which fastq samples correspond to the sample.
+                                          ######## Then its should check to see if any of them exists in the Fastq folder!
+
+
+
+# if os.path.exists('METADATA'): ##### Should check labels of METADATA file to see if the required ones are there and in which order
+    # META_DATA_FILE.readline()
+
+
+    ### Read METADATA file, create Dictionary
+
+    # for LINE in META_DATA_FILE:
         
-    return FILE
+        # LINE=LINE.strip().split()
+        # print(LINE)
+        # SAMPLE_HERE=LINE[1]
+        # SORTED_HERE=LINE[3]
+        # SORTED_SAMPLES_WITH_NO_MERGING.append(SORTED_HERE)
+        
+        # if SAMPLE_HERE in LIBS_TO_SAMPLE.keys():
+            # LIBS_TO_SAMPLE[SAMPLE_HERE].append(SORTED_HERE)
+        # else:
+            # LIBS_TO_SAMPLE[SAMPLE_HERE]=[SORTED_HERE]
+            # SAMPLES.append(SAMPLE_HERE)
 
-###### FINAL FILES SET UP
+
+
+### If sorted but only one , will still try to merge
+
+# SORTED_SAMPLES_WITH_NO_MERGING=[X for X in SORTED_SAMPLES if X not in SORTED_SAMPLES_WITH_NO_MERGING]
+# for X in SORTED_SAMPLES_WITH_NO_MERGING:
+    # LIBS_TO_SAMPLE[X]=[X]
+
+
+
+##### FINAL FILES SET UP
+# SORTED_SAMPLES=sorted(list(set(SORTED_SAMPLES)))
+# SAMPLES=sorted(list(set(SAMPLES)))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+############################################################################################################################################################################################################################################################
+
+
+####### FINAL FILES SET UP
 SAMPLES=set(SAMPLES)
-REF_LOC='../../REFERENCE_GENOMES/'
-REF=REF_LOC+'hg38.fa'
+REF_LOC='../../REFERENCE_GENOMES/'  ############ Set by User
+REF=REF_LOC+'Pongo_abelii.Susie_PABv2.dna.toplevel.fa' ############ Set by User
 
 for S in SAMPLES:
     print(S,PAIRED_END[S],DIR_LOC[S])
@@ -74,8 +217,9 @@ for S in SAMPLES:
 rule all:
     input:
         REF+'.bwt',
-        expand("{sample}.sorted", sample=SAMPLES),
-
+        expand("{sample}.sorted", sample=SAMPLES),###### Initial Sorting Step
+        #expand("{sample}.bam", sample=SAMPLES),    ############## Combined into samples
+        #expand("{sample}.bam.bai", sample=SAMPLES) ############ Combined into samples
 
 
 
@@ -220,7 +364,6 @@ rule BWA_samse_NON_PE:
 
 
 
-
 rule samtools_convert_to_bam:
     input:
         SAM=lambda wildcards: SAM_PE_OR_NOT(wildcards.sample)
@@ -249,3 +392,76 @@ rule samtools_sort:
     threads: 4
     shell:
         "samtools sort {input.FIXED_BAM}  -@ {threads} -o {output.SORTED_BAM}"
+
+
+
+
+
+
+
+
+
+################################################################################## LIBRARY MERGING AND FINAL FILTERING #################################################################################################################
+
+### Merge Different BAM files if they correspond to the same sample
+
+rule Combine_Same_Sample_Bams:
+    input:
+        SORTED_BAMS= lambda wildcards: GetSortedForSample(wildcards.sample)
+    output:
+        COMBINED=temp('{sample}.combined')
+    threads: 4
+    run:
+        RENAMED_SORTED_BAMS=' '.join(input.SORTED_BAMS)
+        shell('samtools merge --threads {threads} -o {output.COMBINED} -f {input.SORTED_BAMS}')
+
+
+### Markdup BAM files for different things: Mark supplementary reads of duplicates as duplicates, remove duplicates
+
+rule samtools_markedup_bam:
+    input:
+        SORTED_BAM="{sample}.combined"
+    output:
+        MARKED_BAM=temp("{sample}.marked")
+    threads: 4
+    shell:
+        "samtools markdup --mode t -S -r -@ {threads} {input.SORTED_BAM} {output.MARKED_BAM}"
+
+
+### Filter BAM files for MAPQ of >30 and 
+
+rule samtools_final_filter_bam:
+    input:
+        MARKED_BAM="{sample}.marked"
+    output:
+        FILTERED_BAM="{sample}.filtered"
+    threads: 4
+    shell:
+        "samtools view -@ {threads} -q 15 -F 0x404 -b -o {output.FILTERED_BAM} {input.MARKED_BAM}"
+
+
+### Index the final bam file
+
+
+rule samtools_index:
+    input:
+        FILTERED_BAM="{sample}.filtered"
+    output:
+        BAI="{sample}.filtered.bai"
+    threads: 4
+    shell:
+        "samtools index -b {input.FILTERED_BAM} -@ {threads}"
+
+
+### Rename the BAM file
+
+rule rename_files:
+    input:
+        FILTERED_BAM="{sample}.filtered",
+        FILTERED_BAI="{sample}.filtered.bai"
+    output:
+        RENAMED_BAM="{sample}.bam",
+        RENAMED_BAI="{sample}.bam.bai"
+    run:
+        shell("mv {input.FILTERED_BAM} {output.RENAMED_BAM}")
+        shell("mv {input.FILTERED_BAI} {output.RENAMED_BAI}")
