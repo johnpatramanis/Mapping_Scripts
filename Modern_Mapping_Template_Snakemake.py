@@ -6,36 +6,6 @@ from os.path import isfile, join
 ################################################################################################################################################################################################################################################################################################################################################
 ################################################################### USEFULL FUNCTIONS
 
-
-######## GET DOWNLOAD LINK OF SAMPLE ###################
-# def GetLinkOfSample_PE1(run_accession):
-
-    # DL_LINK=''
-    
-    # if run_accession in RUNS_TO_FASTQS.keys():
-        # DL_LINK=RUNS_TO_FASTQS[run_accession][0]
-    
-    # return DL_LINK
-
-# def GetLinkOfSample_PE2(run_accession):
-
-    # DL_LINK=''
-    
-    # if run_accession in RUNS_TO_FASTQS.keys():
-        # DL_LINK=RUNS_TO_FASTQS[run_accession][1]
-    
-    # return DL_LINK
-
-# def GetLinkOfSample_NONPE(run_accession):
-
-    # DL_LINK=''
-    
-    # if run_accession in RUNS_TO_FASTQS.keys():
-        # DL_LINK=RUNS_TO_FASTQS[run_accession][0]
-    
-    # return DL_LINK
-    
-    
     
     
 ######## GET LOCATION OF SAMPLE ################################################
@@ -47,7 +17,7 @@ def LocationOfPairedSample1(Sample):
         LOC=DIR_LOC_FASTQ[FASTQ]
         
     if FASTQ not in DIR_LOC_FASTQ.keys(): ## If sample not in any of the folders given, will try to download it
-        LOC='./NEWLY_DOWNLOADED_FASTQS/'
+        LOC='NEWLY_DOWNLOADED_FASTQS/PE1/'
         FASTQ=F'{Sample}_1.fastq.gz'
     
     return "{}{}".format(LOC,FASTQ)
@@ -62,7 +32,7 @@ def LocationOfPairedSample2(Sample):
         LOC=DIR_LOC_FASTQ[FASTQ]
         
     if FASTQ not in DIR_LOC_FASTQ.keys(): ## If sample not in any of the folders given, will try to download it
-        LOC='./NEWLY_DOWNLOADED_FASTQS/'
+        LOC='NEWLY_DOWNLOADED_FASTQS/PE2/'
         FASTQ=F'{Sample}_2.fastq.gz'
     
     return "{}{}".format(LOC,FASTQ)
@@ -76,7 +46,7 @@ def LocationOfNonPairedSample(Sample):
         LOC=DIR_LOC_FASTQ[FASTQ]
     
     if FASTQ not in DIR_LOC_FASTQ.keys(): ## If sample not in any of the folders given, will try to download it
-        LOC='./NEWLY_DOWNLOADED_FASTQS/'
+        LOC='NEWLY_DOWNLOADED_FASTQS/NPE/'
         FASTQ=F'{Sample}.fastq.gz'
     
     
@@ -159,7 +129,7 @@ REF=REF_LOC+'Pongo_abelii.Susie_PABv2.dna.toplevel.fa' ##### Set by user
 
 ##### The most important file!
 if os.path.exists('METADATA'):
-    META_DATA_FILE=open('METADATA','r') #### Set by user, should be a table file from ENA. Required tab seperated columns: 'sample_accession', 'run_accession', 
+    META_DATA_FILE=open('METADATA','r') #### Set by user, should be a table file from ENA. Required tab seperated columns: 'sample_accession', 'run_accession', 'scientific_name', 'fastq_ftp'
 if os.path.exists('METADATA')!=True:
     print('Error - No Metadata txt file identified!')
     
@@ -167,6 +137,9 @@ if os.path.exists('METADATA')!=True:
 if (os.path.exists('NEWLY_DOWNLOADED_FASTQS'))!=True:
     os.mkdir('NEWLY_DOWNLOADED_FASTQS')
 
+    os.mkdir('NEWLY_DOWNLOADED_FASTQS/PE1')
+    os.mkdir('NEWLY_DOWNLOADED_FASTQS/PE2')
+    os.mkdir('NEWLY_DOWNLOADED_FASTQS/NPE')
 
 
 
@@ -213,6 +186,9 @@ if os.path.exists('METADATA'): ##### Should check labels of METADATA file to see
             PAIRED_END[RUN_ACCESSION_HERE] = 'YES'
         if len(FASTQS_HERE)==1:
             PAIRED_END[RUN_ACCESSION_HERE] = 'NO'
+        if len(FASTQS_HERE)==3:  #### If 3 files present, usually the first one is non Pair end and the 2 next ones are paired end, so this will grab the first one  
+            PAIRED_END[RUN_ACCESSION_HERE] = 'NO'
+            
             
             
         SAMPLE_TO_SPECIES_ID[ SAMPLE_HERE ] = SPECIES_HERE
@@ -312,44 +288,48 @@ rule Download_FastQ1_From_Link:
     input:
         FastQ_Link='METADATA'
     output:
-        FastQ_File='NEWLY_DOWNLOADED_FASTQS/{sample}_1.fastq.gz'
+        FastQ_File='NEWLY_DOWNLOADED_FASTQS/PE1/{sample}_1.fastq.gz'
     run:
         DL_LINK=''
         
         if wildcards.sample in RUNS_TO_DOWNLOAD_LINKS.keys():
             DL_LINK=RUNS_TO_DOWNLOAD_LINKS[wildcards.sample]
             
-        shell(F"wget --continue --progress=dot:mega --tries=0 {DL_LINK} -O {output.FastQ_File}")
+        shell(F"wget --continue --progress=dot:mega --tries=0 {DL_LINK} -O NEWLY_DOWNLOADED_FASTQS/PE1/{output.FastQ_File}")
 
 
 #### PE-2
-rule Download_FastQ1_From_Link:
+rule Download_FastQ2_From_Link:
     input:
         FastQ_Link='METADATA'
     output:
-        FastQ_File='NEWLY_DOWNLOADED_FASTQS/{sample}_2.fastq.gz'
+        FastQ_File='NEWLY_DOWNLOADED_FASTQS/PE2/{sample}_2.fastq.gz'
     run:
         DL_LINK=''
         
         if wildcards.sample in RUNS_TO_DOWNLOAD_LINKS.keys():
             DL_LINK=RUNS_TO_DOWNLOAD_LINKS[wildcards.sample]
             
-        shell(F"wget --continue --progress=dot:mega --tries=0 {DL_LINK} -O {output.FastQ_File}")
+        shell(F"wget --continue --progress=dot:mega --tries=0 {DL_LINK} -O NEWLY_DOWNLOADED_FASTQS/PE2/{output.FastQ_File}")
 
 
 #### NON-PE
-rule Download_FastQ1_From_Link:
+rule Download_FastQNPE_From_Link:
     input:
         FastQ_Link='METADATA'
     output:
-        FastQ_File='NEWLY_DOWNLOADED_FASTQS/{sample}.fastq.gz'
+        FastQ_File='NEWLY_DOWNLOADED_FASTQS/NPE/{sample}.fastq.gz'
     run:
         DL_LINK=''
         
         if wildcards.sample in RUNS_TO_DOWNLOAD_LINKS.keys():
             DL_LINK=RUNS_TO_DOWNLOAD_LINKS[wildcards.sample]
             
-        shell(F"wget --continue --progress=dot:mega --tries=0 {DL_LINK} -O {output.FastQ_File}")
+        shell(F"wget --continue --progress=dot:mega --tries=0 {DL_LINK} -O NEWLY_DOWNLOADED_FASTQS/NPE/{output.FastQ_File}")
+
+
+
+
 
 
 
@@ -365,9 +345,17 @@ rule Index_Reference:
         "bwa index {input}"
         
         
+        
+        
+        
+        
+        
+        
 
 
 ###################################################################################################################### SAMPLE PREP ############################################################################################################################
+######### TRIMMING
+
 
 ###### PE
 rule Adapter_trimming_PE:
@@ -405,6 +393,9 @@ rule Adapter_trimming_NON_PE:
 
 
 ########################################################################################################################### ALIGNMENT ###########################################################################################################################
+##### ALIGNMENT
+
+
 
 ######## PE 
 rule BWA_PE_aln_1:
@@ -485,7 +476,7 @@ rule BWA_samse_NON_PE:
 
 
 ################################################################################## BAM CONVERSION AND CLEAN-UP $#################################################################################################################
-
+####### BAM convertion
 
 
 
