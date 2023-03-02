@@ -115,21 +115,22 @@ RUNS_TO_DOWNLOAD_LINKS={}
 SAMPLE_TO_SPECIES_ID={}
 
 
-FASTQ_FOLDERS=['../PONGO_STUDY_FASTQ/'] ##### Set by user, should end with a '/'
-BAM_FOLDERS=['./']                      ##### Set by user
+FASTQ_FOLDERS=['../PONGO_STUDY_FASTQ/'] ##### Set by user, should end with a '/', If you already have the Fastq files somewhere in your machine, add the link here so they don't need to be downloaded
 
 
 
-#### REFERENCE TO MAP
+
+#### REFERENCE TO MAP TO
 REF_LOC='../../REFERENCE_GENOMES/'      ##### Set by user
 REF=REF_LOC+'Pongo_abelii.Susie_PABv2.dna.toplevel.fa' ##### Set by user
 
 
 
-
+############################################################################################################################################################################################################################
+############################################################################################################################################################################################################################
 ##### The most important file!
-if os.path.exists('METADATA'):
-    META_DATA_FILE=open('METADATA','r') #### Set by user, should be a table file from ENA. Required tab seperated columns: 'sample_accession', 'run_accession', 'scientific_name', 'fastq_ftp'
+if os.path.exists('METADATA'):          #### IMPORTANT NOTE, READ BELOW
+    META_DATA_FILE=open('METADATA','r') #### Set by user, should be a table file from ENA. Required, tab seperated columns: 'sample_accession', 'run_accession', 'scientific_name', 'fastq_ftp'
 if os.path.exists('METADATA')!=True:
     print('Error - No Metadata txt file identified!')
     
@@ -137,9 +138,17 @@ if os.path.exists('METADATA')!=True:
 if (os.path.exists('NEWLY_DOWNLOADED_FASTQS'))!=True:
     os.mkdir('NEWLY_DOWNLOADED_FASTQS')
 
-    os.mkdir('NEWLY_DOWNLOADED_FASTQS/PE1')
-    os.mkdir('NEWLY_DOWNLOADED_FASTQS/PE2')
-    os.mkdir('NEWLY_DOWNLOADED_FASTQS/NPE')
+
+if (os.path.exists('NEWLY_DOWNLOADED_FASTQS'))==True:
+
+    if (os.path.exists('NEWLY_DOWNLOADED_FASTQS/PE1'))!=True:
+        os.mkdir('NEWLY_DOWNLOADED_FASTQS/PE1')
+        
+    if (os.path.exists('NEWLY_DOWNLOADED_FASTQS/PE2'))!=True:
+        os.mkdir('NEWLY_DOWNLOADED_FASTQS/PE2')
+        
+    if (os.path.exists('NEWLY_DOWNLOADED_FASTQS/NPE'))!=True:
+        os.mkdir('NEWLY_DOWNLOADED_FASTQS/NPE')
 
 
 
@@ -293,9 +302,9 @@ rule Download_FastQ1_From_Link:
         DL_LINK=''
         
         if wildcards.sample in RUNS_TO_DOWNLOAD_LINKS.keys():
-            DL_LINK=RUNS_TO_DOWNLOAD_LINKS[wildcards.sample]
+            DL_LINK=RUNS_TO_DOWNLOAD_LINKS[wildcards.sample][0]
             
-        shell(F"wget --continue --progress=dot:mega --tries=0 {DL_LINK} -O NEWLY_DOWNLOADED_FASTQS/PE1/{output.FastQ_File}")
+        shell(F"wget --continue --progress=dot:mega --tries=0 {DL_LINK} -O {output.FastQ_File}")
 
 
 #### PE-2
@@ -308,9 +317,9 @@ rule Download_FastQ2_From_Link:
         DL_LINK=''
         
         if wildcards.sample in RUNS_TO_DOWNLOAD_LINKS.keys():
-            DL_LINK=RUNS_TO_DOWNLOAD_LINKS[wildcards.sample]
+            DL_LINK=RUNS_TO_DOWNLOAD_LINKS[wildcards.sample][1]
             
-        shell(F"wget --continue --progress=dot:mega --tries=0 {DL_LINK} -O NEWLY_DOWNLOADED_FASTQS/PE2/{output.FastQ_File}")
+        shell(F"wget --continue --progress=dot:mega --tries=0 {DL_LINK} -O {output.FastQ_File}")
 
 
 #### NON-PE
@@ -323,9 +332,9 @@ rule Download_FastQNPE_From_Link:
         DL_LINK=''
         
         if wildcards.sample in RUNS_TO_DOWNLOAD_LINKS.keys():
-            DL_LINK=RUNS_TO_DOWNLOAD_LINKS[wildcards.sample]
+            DL_LINK=RUNS_TO_DOWNLOAD_LINKS[wildcards.sample][0]
             
-        shell(F"wget --continue --progress=dot:mega --tries=0 {DL_LINK} -O NEWLY_DOWNLOADED_FASTQS/NPE/{output.FastQ_File}")
+        shell(F"wget --continue --progress=dot:mega --tries=0 {DL_LINK} -O {output.FastQ_File}")
 
 
 
@@ -441,7 +450,7 @@ rule BWA_PE_sampe:
 
 
 ######## NON PE 
-
+### Create SAM file, maybe switch to bwa mem for modern DNA?
 
 rule BWA_aln_NON_PE:
     input:
