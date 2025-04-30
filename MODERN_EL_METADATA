@@ -1,0 +1,44 @@
+sample_accession	run_accession	scientific_name	fastq_ftp
+SAMN03447156	SRR1929636	Loxodonta africana	ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/006/SRR1929636/SRR1929636_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/006/SRR1929636/SRR1929636_2.fastq.gz
+SAMN03447156	SRR1929647	Loxodonta africana	ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/007/SRR1929647/SRR1929647_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/007/SRR1929647/SRR1929647_2.fastq.gz
+SAMN03447157	SRR1929649	Loxodonta africana	ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/009/SRR1929649/SRR1929649_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/009/SRR1929649/SRR1929649_2.fastq.gz
+SAMN03447157	SRR1929662	Loxodonta africana	ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/002/SRR1929662/SRR1929662_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/002/SRR1929662/SRR1929662_2.fastq.gz
+SAMN03447156	SRR1929765	Loxodonta africana	ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/005/SRR1929765/SRR1929765_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/005/SRR1929765/SRR1929765_2.fastq.gz
+SAMN03447172	SRR1929776	Loxodonta africana	ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/006/SRR1929776/SRR1929776_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/006/SRR1929776/SRR1929776_2.fastq.gz
+SAMN03447173	SRR1929781	Loxodonta africana	ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/001/SRR1929781/SRR1929781_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/001/SRR1929781/SRR1929781_2.fastq.gz
+SAMN03447174	SRR1929789	Loxodonta africana	ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/009/SRR1929789/SRR1929789_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/009/SRR1929789/SRR1929789_2.fastq.gz
+SAMN03447157	SRR1929796	Loxodonta africana	ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/006/SRR1929796/SRR1929796_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/006/SRR1929796/SRR1929796_2.fastq.gz
+SAMN03447172	SRR1929797	Loxodonta africana	ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/007/SRR1929797/SRR1929797_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/007/SRR1929797/SRR1929797_2.fastq.gz
+SAMN03447172	SRR1929817	Loxodonta africana	ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/007/SRR1929817/SRR1929817_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/007/SRR1929817/SRR1929817_2.fastq.gz
+SAMN03447173	SRR1929941	Loxodonta africana	ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/001/SRR1929941/SRR1929941_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/001/SRR1929941/SRR1929941_2.fastq.gz
+SAMN03447174	SRR1929944	Loxodonta africana	ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/004/SRR1929944/SRR1929944_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/004/SRR1929944/SRR1929944_2.fastq.gz
+SAMN03447173	SRR1929949	Loxodonta africana	ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/009/SRR1929949/SRR1929949_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/009/SRR1929949/SRR1929949_2.fastq.gz
+SAMN03447156	SRR1929954	Loxodonta africana	ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/004/SRR1929954/SRR1929954_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/004/SRR1929954/SRR1929954_2.fastq.gz
+SAMN03447173	SRR1929959	Loxodonta africana	ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/009/SRR1929959/SRR1929959_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/009/SRR1929959/SRR1929959_2.fastq.gz
+SAMN03447173	SRR1929965	Loxodonta africana	ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/005/SRR1929965/SRR1929965_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR192/005/SRR1929965/SRR1929965_2.fastq.gz
+SAMN03447174	SRR1930022	Loxodonta africana	ftp.sra.ebi.ac.uk/vol1/fastq/SRR193/002/SRR1930022/SRR1930022_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR193/002/SRR1930022/SRR1930022_2.fastq.gz
+SAMN03448703	SRR1931686	Elephas maximus	ftp.sra.ebi.ac.uk/vol1/fastq/SRR193/006/SRR1931686/SRR1931686_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR193/006/SRR1931686/SRR1931686_2.fastq.gz
+SAMN03448703	SRR1931727	Elephas maximus	ftp.sra.ebi.ac.uk/vol1/fastq/SRR193/007/SRR1931727/SRR1931727_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR193/007/SRR1931727/SRR1931727_2.fastq.gz
+SAMN03448703	SRR1931744	Elephas maximus	ftp.sra.ebi.ac.uk/vol1/fastq/SRR193/004/SRR1931744/SRR1931744_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR193/004/SRR1931744/SRR1931744_2.fastq.gz
+SAMN03448703	SRR1931793	Elephas maximus	ftp.sra.ebi.ac.uk/vol1/fastq/SRR193/003/SRR1931793/SRR1931793_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR193/003/SRR1931793/SRR1931793_2.fastq.gz
+SAMN03497646	SRR2008170	Elephas maximus	ftp.sra.ebi.ac.uk/vol1/fastq/SRR200/000/SRR2008170/SRR2008170_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR200/000/SRR2008170/SRR2008170_2.fastq.gz
+SAMN03497638	SRR2009586	Elephas maximus	ftp.sra.ebi.ac.uk/vol1/fastq/SRR200/006/SRR2009586/SRR2009586_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR200/006/SRR2009586/SRR2009586_2.fastq.gz
+SAMN03497647	SRR2012201	Elephas maximus	ftp.sra.ebi.ac.uk/vol1/fastq/SRR201/001/SRR2012201/SRR2012201_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR201/001/SRR2012201/SRR2012201_2.fastq.gz
+SAMN03497647	SRR2012202	Elephas maximus	ftp.sra.ebi.ac.uk/vol1/fastq/SRR201/002/SRR2012202/SRR2012202_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR201/002/SRR2012202/SRR2012202_2.fastq.gz
+SAMN03497647	SRR2012203	Elephas maximus	ftp.sra.ebi.ac.uk/vol1/fastq/SRR201/003/SRR2012203/SRR2012203_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR201/003/SRR2012203/SRR2012203_2.fastq.gz
+SAMN03497647	SRR2012204	Elephas maximus	ftp.sra.ebi.ac.uk/vol1/fastq/SRR201/004/SRR2012204/SRR2012204_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR201/004/SRR2012204/SRR2012204_2.fastq.gz
+SAMN03497647	SRR2012205	Elephas maximus	ftp.sra.ebi.ac.uk/vol1/fastq/SRR201/005/SRR2012205/SRR2012205_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR201/005/SRR2012205/SRR2012205_2.fastq.gz
+SAMN03497647	SRR2012206	Elephas maximus	ftp.sra.ebi.ac.uk/vol1/fastq/SRR201/006/SRR2012206/SRR2012206_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR201/006/SRR2012206/SRR2012206_2.fastq.gz
+SAMN03497647	SRR2012207	Elephas maximus	ftp.sra.ebi.ac.uk/vol1/fastq/SRR201/007/SRR2012207/SRR2012207_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR201/007/SRR2012207/SRR2012207_2.fastq.gz
+SAMEA104469176	ERR2260495	Loxodonta cyclotis	ftp.sra.ebi.ac.uk/vol1/fastq/ERR226/005/ERR2260495/ERR2260495.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/ERR226/005/ERR2260495/ERR2260495_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/ERR226/005/ERR2260495/ERR2260495_2.fastq.gz
+SAMEA104469177	ERR2260496	Loxodonta africana	ftp.sra.ebi.ac.uk/vol1/fastq/ERR226/006/ERR2260496/ERR2260496.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/ERR226/006/ERR2260496/ERR2260496_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/ERR226/006/ERR2260496/ERR2260496_2.fastq.gz
+SAMEA104469178	ERR2260497	Loxodonta africana	ftp.sra.ebi.ac.uk/vol1/fastq/ERR226/007/ERR2260497/ERR2260497.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/ERR226/007/ERR2260497/ERR2260497_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/ERR226/007/ERR2260497/ERR2260497_2.fastq.gz
+SAMEA104469179	ERR2260498	Elephas maximus	ftp.sra.ebi.ac.uk/vol1/fastq/ERR226/008/ERR2260498/ERR2260498.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/ERR226/008/ERR2260498/ERR2260498_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/ERR226/008/ERR2260498/ERR2260498_2.fastq.gz
+SAMEA104469180	ERR2260499	Elephas maximus	ftp.sra.ebi.ac.uk/vol1/fastq/ERR226/009/ERR2260499/ERR2260499.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/ERR226/009/ERR2260499/ERR2260499_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/ERR226/009/ERR2260499/ERR2260499_2.fastq.gz
+SAMEA104469181	ERR2260500	Loxodonta cyclotis	ftp.sra.ebi.ac.uk/vol1/fastq/ERR226/000/ERR2260500/ERR2260500.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/ERR226/000/ERR2260500/ERR2260500_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/ERR226/000/ERR2260500/ERR2260500_2.fastq.gz
+SAMN14541777	SRR11484175	Loxodonta africana	ftp.sra.ebi.ac.uk/vol1/fastq/SRR114/075/SRR11484175/SRR11484175_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR114/075/SRR11484175/SRR11484175_2.fastq.gz
+SAMN14541776	SRR11484176	Loxodonta africana	ftp.sra.ebi.ac.uk/vol1/fastq/SRR114/076/SRR11484176/SRR11484176_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR114/076/SRR11484176/SRR11484176_2.fastq.gz
+SAMN14541775	SRR11484177	Loxodonta africana	ftp.sra.ebi.ac.uk/vol1/fastq/SRR114/077/SRR11484177/SRR11484177_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR114/077/SRR11484177/SRR11484177_2.fastq.gz
+SAMN14541774	SRR11484178	Loxodonta africana	ftp.sra.ebi.ac.uk/vol1/fastq/SRR114/078/SRR11484178/SRR11484178_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR114/078/SRR11484178/SRR11484178_2.fastq.gz
+SAMN04247652	SRR2911072	Elephas maximus indicus	ftp.sra.ebi.ac.uk/vol1/fastq/SRR291/002/SRR2911072/SRR2911072_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR291/002/SRR2911072/SRR2911072_2.fastq.gz
+SAMN04260428	SRR2912975	Elephas maximus indicus	ftp.sra.ebi.ac.uk/vol1/fastq/SRR291/005/SRR2912975/SRR2912975_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/SRR291/005/SRR2912975/SRR2912975_2.fastq.gz
